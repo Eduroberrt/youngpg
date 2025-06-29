@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<!-- Main Content -->
+      <!-- Carousel -->
+      <div id="mainCarousel" class="carousel slide mb-4" data-ride="carousel">
+        <div class="carousel-inner">
+          <div class="carousel-item active">
+            <a href="https://t.me/storemarketplacepg"><img src="https://www.acctplugs.com/assets/images/frontend/banner/Banner2.jpg" class="d-block w-100 rounded" alt="Banner 2"></a>
+          </div>
+          <div class="carousel-item">
+            <a href="https://t.me/Customers_care0"><img src="https://www.acctplugs.com/assets/images/frontend/banner/Banner3.jpg" class="d-block w-100 rounded" alt="Banner 3"></a>
+          </div>
+          <div class="carousel-item">
+            <a href="https://chat.whatsapp.com/JBmqSfgsfGN3G3DZUE5PET?mode=ac_t"><img src="https://www.acctplugs.com/assets/images/frontend/banner/Banner4.jpg" class="d-block w-100 rounded" alt="Banner 3"></a>
+          </div>
+          <div class="carousel-item">
+            <a href="{% url 'rules' %}"><img src="https://www.acctplugs.com/assets/images/frontend/banner/Banner5.jpg" class="d-block w-100 rounded" alt="Banner 3"></a>
+          </div>
+        </div>
+        <a class="carousel-control-prev" href="#mainCarousel" role="button" data-slide="prev">
+          <span class="carousel-control-prev-icon"></span>
+        </a>
+        <a class="carousel-control-next" href="#mainCarousel" role="button" data-slide="next">
+          <span class="carousel-control-next-icon"></span>
+        </a>
+      </div>
+      <!-- Category Select -->
+      <div class="mb-4">
+        <form>
+          <select class="form-control w-auto d-inline" onchange="if(this.value) window.location.href=this.value;">
+            <option value="">Shop by Categories</option>
+            {% for category in categories %}
+              <option value="{% url 'category_products' category.slug %}">{{ category.name }}</option>
+            {% endfor %}
+          </select>
+        </form>
+      </div>
+      <!-- Product Sections -->
+      {% for category in categories %}
+        <div class="mb-5">
+          <h5 class="bg-primary text-white p-2 rounded" style="font-size: 13px;">{{ category.name }}</h5>
+          <div class="row">
+            {% for product in category.products.all|slice:":5" %}
+              <div class="col-12 mb-3">
+                <div class="card h-100 px-3 py-4 d-flex flex-row align-items-center" style="border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                  <img src="{{ product.image.url }}" alt="img" class="rounded-circle mr-3" style="width: 48px; height: 48px; object-fit:cover;">
+                  <div class="flex-grow-1 ml-3">
+                    <p class="mb-3" style="font-size: 12px;">
+                      <a href="{% url 'product_detail' product.slug %}" class="text-dark">{{ product.title }}</a>
+                    </p>
+                    <p class="mb-0 text-muted" style="font-size: 13px;">
+                        <span class="font-weight-bold" style="background:#17a2b8; color:#fff; border-radius:6px; padding:7px 10px; margin-right: 10px;">
+                            &#8358;{{ product.price|floatformat:2 }}
+                        </span>
+                        &nbsp;|&nbsp;
+                        <span class="font-weight-bold" style="background:#17a2b8; color:#fff; border-radius:6px; padding:7px 10px; margin-left: 10px;">
+                            {{ product.stock }} pcs
+                        </span>
+                    </p>
+                  </div>
+                  <div class="ml-auto">
+                    {% if product.stock > 0 %}
+                        <a href="{% url 'product_detail' product.slug %}" class="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
+                        style="min-width: 48px; padding: 0.5rem 1rem;">
+                        <i class="fa fa-shopping-basket"></i>
+                        </a>
+                    {% else %}
+                      <button class="btn btn-secondary btn-sm" style="min-width: 110px;" disabled>Not in stock</button>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          <div class="text-right mt-2">
+            <a href="{% url 'category_products' category.slug %}" class="btn btn-dark btn-block d-flex justify-content-center align-items-center" style="width:100%;">
+                View All
+                <i class="fa fa-arrow-right ml-2"></i>
+            </a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

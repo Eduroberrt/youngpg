@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}My Orders{% endblock %}
+
+{% block content %}
+<style>
+.orders-card {
+    margin: 40px auto 24px auto;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(23,162,184,0.10), 0 1.5px 6px rgba(0,0,0,0.04);
+    background: #fff;
+    padding: 2.5rem 2rem 2rem 2rem;
+}
+.orders-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+.orders-header h5 {
+    color: #138496;
+    margin: 0;
+}
+.table thead th {
+    background: #e6f7fa;
+    color: #138496;
+    border: none;
+}
+.table td, .table th {
+    vertical-align: middle;
+}
+@media (max-width: 767.98px) {
+    .orders-card {
+        padding: 1.2rem 0.5rem;
+        border-radius: 12px;
+    }
+    .orders-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+</style>
+
+<div class="orders-card">
+    <div class="orders-header">
+        <h5>My Orders</h5>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="fa fa-arrow-left mr-1"></i> Back to Dashboard
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Transaction</th>
+                    <th>Ordered At</th>
+                    <th>Amount (₦)</th>
+                    <th>Quantity</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.transaction_id }}</td>
+                    <td>{{ order.ordered_at|date:"Y-m-d H:i" }}</td>
+                    <td>{{ order.amount|floatformat:2 }}</td>
+                    <td>{{ order.quantity }}</td>
+                    <td>
+                        {% if order.digital_product %}
+                            <button class="btn btn-sm btn-success" data-toggle="modal" data-target="#orderModal{{ order.id }}">View</button>
+                            <!-- Modal -->
+                            <div class="modal fade" id="orderModal{{ order.id }}" tabindex="-1" role="dialog" aria-labelledby="orderModalLabel{{ order.id }}" aria-hidden="true">
+                              <div class="modal-dialog modal-dialog-centered" role="document">
+                                <div class="modal-content">
+                                  <div class="modal-header">
+                                    <h5 class="modal-title" id="orderModalLabel{{ order.id }}">Order Details</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                      <span aria-hidden="true">&times;</span>
+                                    </button>
+                                  </div>
+                                  <div class="modal-body">
+                                    <strong>{{ order.product }}</strong><br>
+                                    <pre style="white-space: pre-wrap;">{{ order.digital_product }}</pre>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                        {% else %}
+                            <span class="text-muted">Pending</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">No orders found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

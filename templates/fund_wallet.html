@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Fund Wallet{% endblock %}
+
+{% block content %}
+<style>
+.fund-wallet-card {
+    width: 100%;
+    margin: 40px auto 24px auto;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(23,162,184,0.10), 0 1.5px 6px rgba(0,0,0,0.04);
+    background: #fff;
+    padding: 2.5rem 2rem 2rem 2rem;
+}
+@media (max-width: 767.98px) {
+    .fund-wallet-card {
+        padding: 1.2rem 0.7rem;
+        border-radius: 12px;
+    }
+}
+.fund-wallet-card input, .fund-wallet-card label {
+    width: 100%;
+}
+.fund-wallet-btn {
+    width: 100%;
+    padding: 12px 0;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    background: linear-gradient(90deg, #17a2b8 0%, #138496 100%);
+    color: #fff;
+    border: none;
+    transition: background 0.2s;
+}
+.fund-wallet-btn:active {
+    background: linear-gradient(90deg, #138496 0%, #17a2b8 100%);
+}
+.bank-details-card {
+    margin: 0 auto 24px auto;
+    border-radius: 18px;
+    box-shadow: 0 2px 8px rgba(23,162,184,0.08);
+    background: #fff;
+    padding: 2rem 2rem 1.5rem 2rem;
+}
+
+</style>
+
+{% if not show_bank_details %}
+    <div class="fund-wallet-card">
+        <h3 class="mb-5 text-center">Fund Your Wallet</h3>
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        {% if success %}
+        <div class="alert alert-success">{{ success }}</div>
+        {% endif %}
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label class="font-weight-bold mb-1">Enter Amount (NGN)</label>
+            <input type="number" name="amount" class="form-control mb-3" min="100" required placeholder="e.g. 5000">
+            <button type="submit" name="continue" class="fund-wallet-btn mt-2">Continue</button>
+            
+        </form>
+    </div>
+{% endif %}
+
+{% if show_bank_details %}
+<div class="bank-details-card">
+    <h5 class="mb-3 text-center font-weight-bold">Payment Instructions</h5>
+    <div class="mb-3">
+        <strong>Bank Name:</strong> Example Bank<br><br>
+        <strong>Account Name:</strong> Sociaplug Tech<br><br>
+        <strong>Account Number:</strong> 1234567890<br><br>
+        <strong>Amount:</strong> <span style="color:#17a2b8;">&#8358;{{ amount }}</span>
+    </div>
+    <div class="alert alert-info mb-3">
+        Please transfer the exact amount to the account above. After payment, fill in the details below and upload your proof of payment.
+    </div>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="amount" value="{{ amount }}">
+        <label class="font-weight-bold mb-1">Sender Name</label>
+        <input type="text" name="sender_name" class="form-control mb-3" required placeholder="Your account name">
+        <label class="font-weight-bold mb-1">Proof of Payment (screenshot/image)</label>
+        <input type="file" name="proof" class="form-control mb-3" accept="image/*" required>
+        <button type="submit" name="fund" class="fund-wallet-btn mt-2">Fund Wallet</button>
+    </form>
+</div>
+{% endif %}
+{% endblock %}
