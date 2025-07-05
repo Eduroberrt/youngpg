@@ -61,25 +61,13 @@ class PaymentHistory(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.amount} ({self.status})"
 
-    def save(self, *args, **kwargs):
-        is_new = self._state.adding
-        old_status = None
-
-        if not is_new:
-            try:
-                old = PaymentHistory.objects.get(pk=self.pk)
-                old_status = old.status
-            except PaymentHistory.DoesNotExist:
-                pass
-
-        super().save(*args, **kwargs)  # Save first
-
-        # Only credit wallet if status has just become "Success"
-        if (is_new and self.status == "Success") or (old_status != "Success" and self.status == "Success"):
-            profile = self.user.profile
-            profile.balance += self.amount
-            profile.total_deposits += self.amount
-            profile.save()
+@receiver(post_save, sender=PaymentHistory)
+def update_wallet_balance(sender, instance, created, **kwargs):
+    if instance.status == "Success":
+        profile = instance.user.profile
+        profile.balance += instance.amount
+        profile.total_deposits += instance.amount
+        profile.save()
 
 
 class Order(models.Model):
