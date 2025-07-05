@@ -5,7 +5,6 @@
 {% block title %}{{ category.name }} Products{% endblock %}
 
 {% block content %}
-<div class="container">
     <h3 class="mb-4">{{ category.name }}</h3>
     <div class="mb-3">
         <a href="{% url 'product_list' %}" class="btn btn-outline-secondary btn-sm">&larr; All Categories</a>
@@ -30,7 +29,6 @@
                         </span>
                     </p>
                   </div>
-                  <div class="ml-auto">
                     {% if product.stock > 0 %}
                         <a href="{% url 'product_detail' product.slug %}" class="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
                         style="min-width: 48px; padding: 0.5rem 1rem;">
@@ -41,7 +39,6 @@
                       Out of<span class="d-none d-sm-inline"> stock</span><span class="d-sm-none"><br>stock</span>
                     </button>
                     {% endif %}
-                  </div>
                 </div>
               </div>
             {% endfor %}
@@ -49,5 +46,4 @@
     {% else %}
         <div class="alert alert-info">No products found in this category.</div>
     {% endif %}
-</div>
 {% endblock %}

@@ -52,17 +52,8 @@
             <p><strong>Bank Name:</strong> {{ account_details.bank_name }}</p>
             <p><strong>Account Name:</strong> {{ account_details.account_name }}</p>
             <p><strong>Account Number:</strong> {{ account_details.account_number }}</p>
-            <p class="mt-2">Please transfer the amount to the account above. Once done, upload your payment proof below.</p>
+            <p class="mt-2 text-success"><strong>Once payment is made, your wallet will be credited automatically within a few minutes.</strong></p>
         </div>
-
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <input type="hidden" name="amount" value="{{ submitted_amount }}">
-            <label for="proof" class="font-weight-bold mb-1">Upload Payment Proof (Image or PDF)</label>
-            <input type="file" name="proof" accept="image/*,application/pdf" class="form-control mb-3" required>
-            <button type="submit" class="fund-wallet-btn mt-2">Submit Payment Proof</button>
-        </form>
-
     {% else %}
         <form method="post">
             {% csrf_token %}

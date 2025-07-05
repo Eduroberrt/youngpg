@@ -118,7 +118,7 @@ def fund_wallet_view(request):
                             "account_number": account["accountNumber"],
                             "bank_name": account["bankName"],
                         }
-                        success = "Virtual account created. Please make payment. Your wallet will be automatically credited."
+                        success = "Please make payment. Your wallet will be automatically credited."
                     else:
                         error = data.get("message", "Account creation failed.")
         except Exception as e:
