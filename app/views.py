@@ -80,69 +80,49 @@ def fund_wallet_view(request):
     submitted_amount = None
 
     if request.method == 'POST':
-        if 'proof' in request.FILES:
-            # STEP 2: Handle proof upload
-            proof_file = request.FILES['proof']
-            amount = request.POST.get('amount')
+        try:
+            amount = float(request.POST.get('amount'))
+            if amount < 100:
+                error = "Minimum amount is ₦100"
+            else:
+                submitted_amount = amount
+                payload = {
+                    "email": request.user.email,
+                    "name": request.user.get_full_name() or request.user.username,
+                    "phoneNumber": getattr(request.user.profile, 'phone', '08000000000'),
+                    "bankCode": ["20946"],
+                    "businessId": settings.PAYMENTPOINT_BUSINESS_ID
+                }
 
-            try:
-                payment = PaymentHistory.objects.create(
-                    user=request.user,
-                    amount=amount,
-                    type="Deposit",
-                    status="Pending",
-                    proof=proof_file
+                headers = {
+                    "Authorization": f"Bearer {settings.PAYMENTPOINT_AUTH}",
+                    "api-key": settings.PAYMENTPOINT_API_KEY,
+                    "Content-Type": "application/json"
+                }
+
+                resp = requests.post(
+                    "https://api.paymentpoint.co/api/v1/createVirtualAccount",
+                    json=payload,
+                    headers=headers,
+                    timeout=20
                 )
-                success = "Your payment proof was submitted successfully. Awaiting admin review."
-            except Exception as e:
-                error = f"Error saving payment: {str(e)}"
 
-        else:
-            # STEP 1: Create virtual account
-            try:
-                amount = float(request.POST.get('amount'))
-                if amount < 100:
-                    error = "Minimum amount is ₦100"
+                if resp.status_code != 201:
+                    error = f"PaymentPoint API error {resp.status_code}: {resp.text}"
                 else:
-                    submitted_amount = amount
-                    payload = {
-                        "email": request.user.email,
-                        "name": request.user.get_full_name() or request.user.username,
-                        "phoneNumber": getattr(request.user.profile, 'phone', '08000000000'),
-                        "bankCode": ["20946"],
-                        "businessId": settings.PAYMENTPOINT_BUSINESS_ID
-                    }
-
-                    headers = {
-                        "Authorization": f"Bearer {settings.PAYMENTPOINT_AUTH}",
-                        "api-key": settings.PAYMENTPOINT_API_KEY,
-                        "Content-Type": "application/json"
-                    }
-
-                    resp = requests.post(
-                        "https://api.paymentpoint.co/api/v1/createVirtualAccount",
-                        json=payload,
-                        headers=headers,
-                        timeout=20
-                    )
-
-                    if resp.status_code != 201:
-                        error = f"PaymentPoint API error {resp.status_code}: {resp.text}"
+                    data = resp.json()
+                    if data.get("status") == "success":
+                        account = data["bankAccounts"][0]
+                        account_details = {
+                            "account_name": account["accountName"],
+                            "account_number": account["accountNumber"],
+                            "bank_name": account["bankName"],
+                        }
+                        success = "Virtual account created. Please make payment. Your wallet will be automatically credited."
                     else:
-                        data = resp.json()
-                        if data.get("status") == "success":
-                            account = data["bankAccounts"][0]
-                            account_details = {
-                                "account_name": account["accountName"],
-                                "account_number": account["accountNumber"],
-                                "bank_name": account["bankName"],
-                            }
-                            success = "Virtual account created. Please make payment and upload your proof."
-                        else:
-                            error = data.get("message", "Account creation failed.")
-
-            except Exception as e:
-                error = f"Exception occurred: {str(e)}"
+                        error = data.get("message", "Account creation failed.")
+        except Exception as e:
+            error = f"Exception occurred: {str(e)}"
 
     return render(request, 'fund_wallet.html', {
         'error': error,
@@ -314,36 +294,42 @@ def paymentpoint_webhook(request):
     try:
         payload = json.loads(request.body)
 
-        # Extract fields (adjust these based on PaymentPoint's actual payload)
+        # Extract fields from webhook payload
         customer_email = payload.get('customer_email')
         amount_paid = float(payload.get('amount', 0))
         status = payload.get('status')
-        reference = payload.get('reference', '')  # Optional
+        reference = payload.get('reference') or ''  # Optional field
 
+        # Only process successful transactions
         if status != "Success":
-            return JsonResponse({"message": "Ignored non-success status"}, status=200)
+            return JsonResponse({"message": "Transaction ignored (not successful)"}, status=200)
 
+        # Match the user by email
         user = User.objects.filter(email=customer_email).first()
         if not user:
             return JsonResponse({"message": "User not found"}, status=404)
 
-        # Prevent duplicate payment history
+        # Prevent duplicate credits
         if PaymentHistory.objects.filter(user=user, amount=amount_paid, status="Success").exists():
-            return JsonResponse({"message": "Payment already recorded"}, status=200)
+            return JsonResponse({"message": "Payment already processed"}, status=200)
 
-        # Create PaymentHistory and credit wallet
+        # Create payment history
         PaymentHistory.objects.create(
             user=user,
             amount=amount_paid,
             type="PaymentPoint",
-            status="Success",
+            status="Success"
         )
+
+        # Credit the wallet
         profile = user.profile
         profile.balance += amount_paid
         profile.total_deposits += amount_paid
         profile.save()
 
-        return JsonResponse({"message": "Payment recorded and wallet credited"}, status=200)
+        return JsonResponse({"message": "Wallet credited successfully"}, status=200)
 
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON format"}, status=400)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
