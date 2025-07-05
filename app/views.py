@@ -21,6 +21,8 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.views import PasswordResetView
 from django.template.loader import render_to_string
 from django.utils import timezone
+import hmac
+import hashlib
 
 class CustomPasswordResetView(PasswordResetView):
     template_name = 'forgot_password.html'
@@ -292,36 +294,59 @@ def category_products(request, slug):
 @require_POST
 def paymentpoint_webhook(request):
     try:
-        payload = json.loads(request.body)
+        # Step 1: Extract raw payload and signature
+        raw_payload = request.body
+        received_signature = request.headers.get('Paymentpoint-Signature')
 
-        # Extract fields from webhook payload
-        customer_email = payload.get('customer_email')
-        amount_paid = float(payload.get('amount', 0))
-        status = payload.get('status')
-        reference = payload.get('reference') or ''  # Optional field
+        if not received_signature:
+            return JsonResponse({"error": "Missing signature header"}, status=400)
 
-        # Only process successful transactions
-        if status != "Success":
-            return JsonResponse({"message": "Transaction ignored (not successful)"}, status=200)
+        # Step 2: Recalculate HMAC signature using PAYMENTPOINT_AUTH
+        secret_key = settings.PAYMENTPOINT_AUTH
+        calculated_signature = hmac.new(
+            secret_key.encode('utf-8'),
+            raw_payload,
+            hashlib.sha256
+        ).hexdigest()
 
-        # Match the user by email
+        if calculated_signature != received_signature:
+            return JsonResponse({"error": "Invalid signature"}, status=400)
+
+        # Step 3: Parse and validate payload
+        payload = json.loads(raw_payload)
+
+        if payload.get("notification_status") != "payment_successful":
+            return JsonResponse({"message": "Ignored (not a successful payment)"}, status=200)
+
+        transaction_status = payload.get("transaction_status")
+        if transaction_status != "success":
+            return JsonResponse({"message": "Ignored (status not success)"}, status=200)
+
+        customer_info = payload.get("customer", {})
+        customer_email = customer_info.get("email")
+        amount_paid = float(payload.get("amount_paid", 0))
+        transaction_id = payload.get("transaction_id")
+
+        if not customer_email or not amount_paid or not transaction_id:
+            return JsonResponse({"error": "Incomplete data in payload"}, status=400)
+
         user = User.objects.filter(email=customer_email).first()
         if not user:
-            return JsonResponse({"message": "User not found"}, status=404)
+            return JsonResponse({"error": "User not found"}, status=404)
 
-        # Prevent duplicate credits
-        if PaymentHistory.objects.filter(user=user, amount=amount_paid, status="Success").exists():
-            return JsonResponse({"message": "Payment already processed"}, status=200)
+        # Avoid duplicate processing
+        if PaymentHistory.objects.filter(reference=transaction_id, status="Success").exists():
+            return JsonResponse({"message": "Transaction already processed"}, status=200)
 
-        # Create payment history
+        # Save payment history and credit wallet
         PaymentHistory.objects.create(
             user=user,
             amount=amount_paid,
             type="PaymentPoint",
-            status="Success"
+            status="Success",
+            reference=transaction_id
         )
 
-        # Credit the wallet
         profile = user.profile
         profile.balance += amount_paid
         profile.total_deposits += amount_paid
