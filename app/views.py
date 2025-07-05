@@ -338,19 +338,15 @@ def paymentpoint_webhook(request):
         if PaymentHistory.objects.filter(reference=transaction_id, status="Success").exists():
             return JsonResponse({"message": "Transaction already processed"}, status=200)
 
-        # Save payment history and credit wallet
-        PaymentHistory.objects.create(
+        # Save payment history and let model handle crediting
+        payment = PaymentHistory(
             user=user,
             amount=amount_paid,
             type="PaymentPoint",
             status="Success",
             reference=transaction_id
         )
-
-        profile = user.profile
-        profile.balance += amount_paid
-        profile.total_deposits += amount_paid
-        profile.save()
+        payment.save()  # This will trigger the model’s save() method logic
 
         return JsonResponse({"message": "Wallet credited successfully"}, status=200)
 
