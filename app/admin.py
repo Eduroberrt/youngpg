@@ -25,22 +25,6 @@ class PaymentHistoryAdmin(admin.ModelAdmin):
     list_filter = ('status', 'type')
     search_fields = ('user__username', 'user__email')
 
-    def save_model(self, request, obj, form, change):
-        # Only credit wallet if status is being set to "Success" and wasn't already "Success"
-        if change:
-            old_obj = PaymentHistory.objects.get(pk=obj.pk)
-            if old_obj.status != "Success" and obj.status == "Success":
-                profile = obj.user.profile
-                profile.balance += obj.amount
-                profile.total_deposits += obj.amount
-                profile.save()
-        elif obj.status == "Success":
-            profile = obj.user.profile
-            profile.balance += obj.amount
-            profile.total_deposits += obj.amount
-            profile.save()
-
-        super().save_model(request, obj, form, change)
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
