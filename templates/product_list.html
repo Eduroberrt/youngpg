@@ -80,7 +80,9 @@
                           </a>
                         {% endif %}
                     {% else %}
-                     <button class="btn btn-secondary btn-sm btn-not-in-stock" style="min-width: 110px;" disabled>Not in stock</button>
+                     <button class="btn btn-secondary btn-sm btn-not-in-stock not-in-stock-mobile" style="min-width: 110px;" disabled>
+                      Out of<span class="d-none d-sm-inline"> stock</span><span class="d-sm-none"><br>stock</span>
+                    </button>
                     {% endif %}
                   </div>
                 </div>

@@ -37,18 +37,39 @@
 </style>
 
 <div class="fund-wallet-card">
-    <h3 class="mb-5 text-center">Fund Your Wallet</h3>
+    <h3 class="mb-4 text-center">Fund Your Wallet</h3>
+
     {% if error %}
-    <div class="alert alert-danger">{{ error }}</div>
+        <div class="alert alert-danger">{{ error }}</div>
     {% endif %}
+
     {% if success %}
-    <div class="alert alert-success">{{ success }}</div>
+        <div class="alert alert-success">{{ success }}</div>
     {% endif %}
-    <form method="post">
-        {% csrf_token %}
-        <label class="font-weight-bold mb-1">Enter Amount (NGN)</label>
-        <input type="number" name="amount" class="form-control mb-3" min="100" required placeholder="e.g. 5000">
-        <button type="submit" class="fund-wallet-btn mt-2">Pay with PaymentPoint</button>
-    </form>
+
+    {% if account_details %}
+        <div class="alert alert-info">
+            <p><strong>Bank Name:</strong> {{ account_details.bank_name }}</p>
+            <p><strong>Account Name:</strong> {{ account_details.account_name }}</p>
+            <p><strong>Account Number:</strong> {{ account_details.account_number }}</p>
+            <p class="mt-2">Please transfer the amount to the account above. Once done, upload your payment proof below.</p>
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="amount" value="{{ submitted_amount }}">
+            <label for="proof" class="font-weight-bold mb-1">Upload Payment Proof (Image or PDF)</label>
+            <input type="file" name="proof" accept="image/*,application/pdf" class="form-control mb-3" required>
+            <button type="submit" class="fund-wallet-btn mt-2">Submit Payment Proof</button>
+        </form>
+
+    {% else %}
+        <form method="post">
+            {% csrf_token %}
+            <label class="font-weight-bold mb-1">Enter Amount (NGN)</label>
+            <input type="number" name="amount" class="form-control mb-3" min="100" required placeholder="e.g. 5000">
+            <button type="submit" class="fund-wallet-btn mt-2">Pay with PaymentPoint</button>
+        </form>
+    {% endif %}
 </div>
 {% endblock %}

@@ -39,6 +39,7 @@ class PaymentHistoryAdmin(admin.ModelAdmin):
             profile.balance += obj.amount
             profile.total_deposits += obj.amount
             profile.save()
+
         super().save_model(request, obj, form, change)
 
 @admin.register(Order)
@@ -48,9 +49,3 @@ class OrderAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'transaction_id', 'product__title')
     readonly_fields = ('user', 'product', 'transaction_id', 'ordered_at', 'amount', 'quantity')
     fields = ('user', 'product', 'transaction_id', 'ordered_at', 'amount', 'quantity', 'fulfilled', 'digital_product')
-
-@admin.register(PaymentPointTransaction)
-class PaymentPointTransactionAdmin(admin.ModelAdmin):
-    list_display = ('user', 'reference', 'amount', 'status', 'created_at')
-    search_fields = ('user__username', 'reference')
-    list_filter = ('status',)

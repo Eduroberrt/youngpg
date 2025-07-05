@@ -30,12 +30,18 @@ class Profile(models.Model):
         return f"{self.user.username}'s Profile"
 
 class PaymentHistory(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Success', 'Success'),
+        ('Failed', 'Failed'),
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='payments')
     date = models.DateTimeField(auto_now_add=True)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     type = models.CharField(max_length=50)
-    status = models.CharField(max_length=20)
-    proof = models.ImageField(upload_to='payment_proofs/', null=True, blank=True)  # Add this line
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    proof = models.ImageField(upload_to='payment_proofs/', null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.username} - {self.amount} ({self.status})"
@@ -61,16 +67,3 @@ from django.dispatch import receiver
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
-
-class PaymentPointTransaction(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='paymentpoint_transactions')
-    reference = models.CharField(max_length=100, unique=True)
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
-    status = models.CharField(max_length=20, default='pending')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    payment_url = models.URLField(blank=True, null=True)
-    raw_response = models.JSONField(blank=True, null=True)
-
-    def __str__(self):
-        return f"{self.user.username} - {self.reference} ({self.status})"
