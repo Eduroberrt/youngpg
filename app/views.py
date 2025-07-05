@@ -10,6 +10,37 @@ from django.core.paginator import Paginator
 import uuid
 from django.contrib import messages
 from django.http import JsonResponse
+from django.core.mail import send_mail
+from django.conf import settings
+import json
+from django.http import HttpResponse
+import requests
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.views import PasswordResetView
+from django.template.loader import render_to_string
+from django.utils import timezone
+
+class CustomPasswordResetView(PasswordResetView):
+    template_name = 'forgot_password.html'
+    html_email_template_name = 'reset_email.html'
+    subject_template_name = 'reset_subject.txt'
+    success_url = '/forgot-password/done/'
+
+    def form_valid(self, form):
+        email = form.cleaned_data["email"].strip().lower()  # <-- Lowercase and strip spaces
+        if not User.objects.filter(email__iexact=email).exists():
+            return self.form_invalid(form)
+        
+        form.cleaned_data["email"] = email
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        return self.render_to_response(self.get_context_data(
+            form=form,
+            error="No user with that email address exists."
+        ))
 
 @login_required
 def product_detail(request, slug):
@@ -45,45 +76,61 @@ def product_detail(request, slug):
 def fund_wallet_view(request):
     error = None
     success = None
-    show_bank_details = False
-    amount = None
+    payment_url = None
 
     if request.method == 'POST':
-        if 'continue' in request.POST:
-            try:
-                amount = float(request.POST.get('amount'))
-                if amount < 100:
-                    error = "Minimum amount is ₦100"
-                else:
-                    show_bank_details = True
-            except:
-                error = "Enter a valid amount."
-        elif 'fund' in request.POST:
-            amount = request.POST.get('amount')
-            sender_name = request.POST.get('sender_name')
-            proof = request.FILES.get('proof')
-            if not sender_name or not proof or not amount:
-                error = "All fields are required."
-                show_bank_details = True
+        try:
+            amount = float(request.POST.get('amount'))
+            if amount < 100:
+                error = "Minimum amount is ₦100"
             else:
-                # Save payment request for admin review
-                payment = PaymentHistory.objects.create(
-                    user=request.user,
-                    amount=amount,
-                    type="Deposit",
-                    status="Pending"
+                reference = str(uuid.uuid4()).replace('-', '')[:16]
+                payload = {
+                    "amount": int(amount),
+                    "email": request.user.email,
+                    "reference": reference,
+                    "business_id": settings.PAYMENTPOINT_BUSINESS_ID,
+                    "callback_url": request.build_absolute_uri('/paymentpoint/webhook/'),
+                    "currency": "NGN",
+                    "customer_name": request.user.username,
+                }
+                headers = {
+                    "Authorization": settings.PAYMENTPOINT_AUTH,
+                    "api-key": settings.PAYMENTPOINT_API_KEY,
+                    "Content-Type": "application/json"
+                }
+
+                resp = requests.post(
+                    "https://api.paymentpoint.co",
+                    json=payload,
+                    headers=headers,
+                    timeout=20
                 )
-                # Save proof image
-                payment.proof = proof
-                payment.save()
-                success = "Your payment has been submitted and is pending admin approval."
-    context = {
+
+
+                if resp.status_code != 200:
+                    error = f"PaymentPoint API error {resp.status_code}: {resp.text}"
+                    return render(request, 'fund_wallet.html', {'error': error})
+
+                try:
+                    data = resp.json()
+                except Exception as e:
+                    error = f"Invalid JSON from PaymentPoint: {resp.text}"
+                    return render(request, 'fund_wallet.html', {'error': error})
+
+                if data.get("status") == "success" and "data" in data and "checkout_url" in data["data"]:
+                    return redirect(data["data"]["checkout_url"])
+                else:
+                    error = data.get("message", "Payment initiation failed.")
+
+        except Exception as e:
+            error = f"Exception: {e}"
+
+    return render(request, 'fund_wallet.html', {
         'error': error,
         'success': success,
-        'show_bank_details': show_bank_details,
-        'amount': amount
-    }
-    return render(request, 'fund_wallet.html', context)
+        'payment_url': payment_url,
+    })
 
 @login_required
 def change_password_view(request):
@@ -142,21 +189,49 @@ def register_view(request):
         else:
             user = User.objects.create_user(username=username, email=email, password=password)
             login(request, user)
+            # Send welcome email (HTML)
+            subject = 'Welcome to YoungPG Media'
+            plain_message = 'Thank you for registering at YoungPG Media!'
+            html_message = render_to_string('welcome_email.html', {
+                'username': username,
+                'site_url': request.build_absolute_uri('/dashboard/'),
+                'now': timezone.now().year,
+            })
+            from_email = settings.DEFAULT_FROM_EMAIL
+            send_mail(
+                subject,
+                plain_message,
+                from_email,
+                [email],
+                html_message=html_message,
+                fail_silently=True,
+            )
             return redirect('product_list')
     return render(request, 'register.html', {'error': error})
 
 def login_view(request):
     error = None
+    next_url = request.GET.get('next', request.POST.get('next', ''))
     if request.method == 'POST':
-        username = request.POST.get('username')
+        username_or_email = request.POST.get('username')
         password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
+        user = authenticate(request, username=username_or_email, password=password)
+        if user is None:
+            # Try email
+            try:
+                user_obj = User.objects.get(email=username_or_email)
+                user = authenticate(request, username=user_obj.username, password=password)
+            except User.DoesNotExist:
+                user = None
         if user is not None:
             login(request, user)
+            next_url = request.POST.get('next') or request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
             return redirect('product_list')
         else:
-            error = "Invalid username or password."
-    return render(request, 'login.html', {'error': error})
+            error = "Invalid username/email or password."
+    return render(request, 'login.html', {'error': error, 'next': next_url})
 
 def logout_view(request):
     logout(request)
@@ -204,5 +279,46 @@ def rules_view(request):
     return render(request, 'rules.html')
 
 
+@csrf_exempt
+@require_POST
+def paymentpoint_webhook(request):
+    try:
+        data = json.loads(request.body)
+        reference = data.get('reference')
+        status = data.get('status')
+        amount = data.get('amount')
 
+        # Find the transaction
+        txn = PaymentPointTransaction.objects.get(reference=reference)
+        txn.status = status
+        txn.raw_response = data
+        txn.save()
 
+        # Only credit wallet if payment is successful and not already credited
+        if status == "success":
+            # Prevent double credit
+            if not PaymentHistory.objects.filter(type="Deposit", status="Success", amount=amount, user=txn.user, date__gte=txn.created_at).exists():
+                PaymentHistory.objects.create(
+                    user=txn.user,
+                    amount=amount,
+                    type="Deposit",
+                    status="Success"
+                )
+                # Update profile balance
+                profile = txn.user.profile
+                profile.balance += float(amount)
+                profile.total_deposits += float(amount)
+                profile.save()
+        return HttpResponse("OK", status=200)
+    except Exception as e:
+        return HttpResponse(f"Error: {e}", status=400)
+    
+def category_products(request, slug):
+    category = get_object_or_404(Category, slug=slug)
+    products = category.products.all()
+    categories = Category.objects.all()
+    return render(request, 'category_products.html', {
+        'category': category,
+        'products': products,
+        'categories': categories
+    })

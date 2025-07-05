@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Welcome to YoungPG Media</title>
+  <style>
+    body {
+      background: #f4f4f4;
+      font-family: 'Inter', Arial, Helvetica, sans-serif;
+      color: #222;
+      margin: 0;
+      padding: 0;
+    }
+    .email-container {
+      max-width: 420px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(23,162,184,0.10), 0 1.5px 6px rgba(0,0,0,0.04);
+      padding: 2.5rem 2rem 2rem 2rem;
+    }
+    .brand {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .brand-logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #e6f9ed;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 8px;
+    }
+    .brand-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #17a2b8;
+      margin-bottom: 0;
+    }
+    .welcome-title {
+      color: #222;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .welcome-text {
+      color: #444;
+      font-size: 1rem;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .welcome-btn {
+      display: block;
+      width: 100%;
+      background-color: #17a2b8;
+      color: #fff !important;
+      text-decoration: none;
+      padding: 14px 0;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 1rem;
+      text-align: center;
+      margin-bottom: 18px;
+      transition: background 0.2s;
+    }
+    .welcome-btn:hover {
+      background-color: #138496;
+      color: #fff !important;
+    }
+    .footer {
+      text-align: center;
+      color: #888;
+      font-size: 0.93rem;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="brand">
+      <div class="brand-logo">
+        <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="24" fill="#17a2b8" fill-opacity="0.15"/>
+          <path d="M16 24.5L22 30.5L32 18.5" stroke="#17a2b8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="brand-title">YoungPG Media</div>
+    </div>
+    <div class="welcome-title">Welcome to YoungPG Media!</div>
+    <div class="welcome-text">
+      Hi{% if username %} {{ username }}{% endif %},<br>
+      Thank you for registering at YoungPG Media.<br>
+      We're excited to have you on board!
+    </div>
+    <a href="{{ site_url|default:'https://youngpgmedia.com' }}" class="welcome-btn">
+      Visit Your Dashboard
+    </a>
+    <div class="welcome-text" style="font-size:0.97rem;">
+      If you have any questions or need help, just reply to this email.
+    </div>
+    <div class="footer">
+      &copy; {{ now|default:"2025" }} YoungPG Media
+    </div>
+  </div>
+</body>
+</html>

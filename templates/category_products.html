@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}{{ category.name }} Products{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h3 class="mb-4">{{ category.name }}</h3>
+    <div class="mb-3">
+        <a href="{% url 'product_list' %}" class="btn btn-outline-secondary btn-sm">&larr; All Categories</a>
+    </div>
+    {% if products %}
+        <div class="row">
+            {% for product in products %}
+                <div class="col-12 mb-3">
+                <div class="card h-100 px-3 py-4 d-flex flex-row align-items-center" style="border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                  <img src="{{ product.image.url }}" alt="img" class="rounded-circle mr-3" style="width: 48px; height: 48px; object-fit:cover;">
+                  <div class="flex-grow-1 ml-3">
+                    <p class="mb-3" style="font-size: 12px;">
+                      <a href="{% url 'product_detail' product.slug %}" class="text-dark">{{ product.title }}</a>
+                    </p>
+                    <p class="mb-0 text-muted" style="font-size: 13px;">
+                        <span class="font-weight-bold" style="background:#17a2b8; color:#fff; border-radius:6px; padding:7px 10px; margin-right: 10px;">
+                            &#8358;{{ product.price|floatformat:2|intcomma  }}
+                        </span>
+                        &nbsp;|&nbsp;
+                        <span class="font-weight-bold" style="background:#17a2b8; color:#fff; border-radius:6px; padding:7px 10px; margin-left: 10px;">
+                            {{ product.stock }} pcs
+                        </span>
+                    </p>
+                  </div>
+                  <div class="ml-auto">
+                    {% if product.stock > 0 %}
+                        <a href="{% url 'product_detail' product.slug %}" class="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
+                        style="min-width: 48px; padding: 0.5rem 1rem;">
+                        <i class="fa fa-shopping-basket"></i>
+                        </a>
+                    {% else %}
+                      <button class="btn btn-secondary btn-sm" style="min-width: 110px;" disabled>Not in stock</button>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">No products found in this category.</div>
+    {% endif %}
+</div>
+{% endblock %}

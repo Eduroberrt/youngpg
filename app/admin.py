@@ -12,6 +12,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ('category',)
     search_fields = ('title',)
     prepopulated_fields = {'slug': ('title',)}
+    fields = ('category', 'title', 'slug', 'image', 'price', 'stock', 'description')
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
@@ -47,3 +48,9 @@ class OrderAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'transaction_id', 'product__title')
     readonly_fields = ('user', 'product', 'transaction_id', 'ordered_at', 'amount', 'quantity')
     fields = ('user', 'product', 'transaction_id', 'ordered_at', 'amount', 'quantity', 'fulfilled', 'digital_product')
+
+@admin.register(PaymentPointTransaction)
+class PaymentPointTransactionAdmin(admin.ModelAdmin):
+    list_display = ('user', 'reference', 'amount', 'status', 'created_at')
+    search_fields = ('user__username', 'reference')
+    list_filter = ('status',)

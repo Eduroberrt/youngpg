@@ -210,3 +210,11 @@ input, select, textarea {
         font-size: 0.6rem;
     }
 }
+
+@media (max-width: 991px) {
+    .btn-not-in-stock {
+        min-width: 70px !important;
+        font-size: 0.60rem !important;
+        padding: 0.2rem 0.2rem !important;
+    }
+}

@@ -125,6 +125,13 @@
         </div>
         <div class="col-md-8">
             <div class="product-detail-title">{{ product.title }}</div>
+            {% if product.description %}
+                <div class="mt-4">
+                    <div>
+                        {{ product.description|linebreaks }}
+                    </div>
+                </div>
+            {% endif %}
             <div class="product-detail-price">&#8358;{{ product.price|floatformat:2 }} per pcs</div>
             <div class="product-detail-stock">
                 <span style="background:#17a2b8; color:#fff; border-radius:6px; padding:4px 12px;">
