@@ -41,7 +41,7 @@ class Profile(models.Model):
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         fake_number = f"080{random.randint(10000000, 99999999)}"
-        Profile.objects.create(user=instance, phone=fake_number)  # ✅ Use random phone number
+        Profile.objects.create(user=instance, phone=fake_number, balance=0)
 
 
 class PaymentHistory(models.Model):
