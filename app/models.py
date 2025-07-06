@@ -56,30 +56,7 @@ class PaymentHistory(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.amount} ({self.status})"
-
-# --- SIGNALS FOR BALANCE UPDATE ---
-
-@receiver(post_save, sender=PaymentHistory)
-def update_wallet_balance_on_create(sender, instance, created, **kwargs):
-    if created and instance.status == "Success":
-        profile = instance.user.profile
-        profile.balance = (profile.balance or Decimal('0')) + (instance.amount or Decimal('0'))
-        profile.total_deposits = (profile.total_deposits or Decimal('0')) + (instance.amount or Decimal('0'))
-        profile.save()
-
-@receiver(pre_save, sender=PaymentHistory)
-def update_wallet_balance_on_status_change(sender, instance, **kwargs):
-    if instance.pk:  # Only for updates, not creates
-        try:
-            old = PaymentHistory.objects.get(pk=instance.pk)
-        except PaymentHistory.DoesNotExist:
-            return
-        if old.status != "Success" and instance.status == "Success":
-            profile = instance.user.profile
-            profile.balance = (profile.balance or Decimal('0')) + (instance.amount or Decimal('0'))
-            profile.total_deposits = (profile.total_deposits or Decimal('0')) + (instance.amount or Decimal('0'))
-            profile.save()
-
+    
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)

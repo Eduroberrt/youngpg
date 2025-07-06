@@ -294,14 +294,14 @@ def category_products(request, slug):
 @require_POST
 def paymentpoint_webhook(request):
     try:
-        # Step 1: Extract raw payload and signature
+        # 1. Extract raw payload and signature
         raw_payload = request.body
         received_signature = request.headers.get('Paymentpoint-Signature')
 
         if not received_signature:
             return JsonResponse({"error": "Missing signature header"}, status=400)
 
-        # Step 2: Recalculate HMAC signature using PAYMENTPOINT_AUTH
+        # 2. Recalculate HMAC signature using PAYMENTPOINT_AUTH
         secret_key = settings.PAYMENTPOINT_AUTH
         calculated_signature = hmac.new(
             secret_key.encode('utf-8'),
@@ -312,7 +312,7 @@ def paymentpoint_webhook(request):
         if calculated_signature != received_signature:
             return JsonResponse({"error": "Invalid signature"}, status=400)
 
-        # Step 3: Parse and validate payload
+        # 3. Parse and validate payload
         payload = json.loads(raw_payload)
 
         if payload.get("notification_status") != "payment_successful":
@@ -324,7 +324,7 @@ def paymentpoint_webhook(request):
 
         customer_info = payload.get("customer", {})
         customer_email = customer_info.get("email")
-        amount_paid = float(payload.get("amount_paid", 0))
+        amount_paid = Decimal(str(payload.get("amount_paid", 0)))  # use Decimal for money!
         transaction_id = payload.get("transaction_id")
 
         if not customer_email or not amount_paid or not transaction_id:
@@ -335,18 +335,28 @@ def paymentpoint_webhook(request):
             return JsonResponse({"error": "User not found"}, status=404)
 
         # Avoid duplicate processing
-        if PaymentHistory.objects.filter(reference=transaction_id, status="Success").exists():
+        payment, created = PaymentHistory.objects.get_or_create(
+            reference=transaction_id,
+            defaults={
+                'user': user,
+                'amount': amount_paid,
+                'type': "PaymentPoint",
+                'status': "Success"
+            }
+        )
+        if not created and payment.status == "Success":
             return JsonResponse({"message": "Transaction already processed"}, status=200)
 
-        # Save payment history and let model handle crediting
-        payment = PaymentHistory(
-            user=user,
-            amount=amount_paid,
-            type="PaymentPoint",
-            status="Success",
-            reference=transaction_id
-        )
-        payment.save()  # This will trigger the model’s save() method logic
+        # Update payment status if not already success
+        if not created and payment.status != "Success":
+            payment.status = "Success"
+            payment.save()
+
+        # Update user's profile balance and total deposits
+        profile = user.profile
+        profile.balance = (profile.balance or Decimal('0')) + amount_paid
+        profile.total_deposits = (profile.total_deposits or Decimal('0')) + amount_paid
+        profile.save()
 
         return JsonResponse({"message": "Wallet credited successfully"}, status=200)
 
