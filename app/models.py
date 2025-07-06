@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 import random 
 
@@ -61,13 +61,25 @@ class PaymentHistory(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.amount} ({self.status})"
 
+# Signal to handle newly created payments with status "Success"
 @receiver(post_save, sender=PaymentHistory)
-def update_wallet_balance(sender, instance, created, **kwargs):
-    if instance.status == "Success":
+def update_wallet_balance_on_create(sender, instance, created, **kwargs):
+    if created and instance.status == "Success":
         profile = instance.user.profile
         profile.balance += instance.amount
         profile.total_deposits += instance.amount
         profile.save()
+
+# Signal to handle when status changes to "Success" on an existing payment
+@receiver(pre_save, sender=PaymentHistory)
+def update_wallet_balance_on_status_change(sender, instance, **kwargs):
+    if instance.pk:
+        old = PaymentHistory.objects.get(pk=instance.pk)
+        if old.status != "Success" and instance.status == "Success":
+            profile = instance.user.profile
+            profile.balance += instance.amount
+            profile.total_deposits += instance.amount
+            profile.save()
 
 
 class Order(models.Model):
