@@ -39,30 +39,46 @@
         gap: 10px;
     }
 }
+.custom-modal-overlay {
+  position: fixed;
+  z-index: 2000;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.custom-modal-overlay.active {
+  display: flex;
+}
+.custom-modal {
+  background: #fff;
+  border-radius: 12px;
+  max-width: 95vw;
+  width: 340px;
+  padding: 1.2rem 1rem 1rem 1rem;
+  box-shadow: 0 4px 24px rgba(23,162,184,0.10), 0 1.5px 6px rgba(0,0,0,0.04);
+  position: relative;
+  font-size: 1rem;
+}
+.custom-modal-close {
+  position: absolute;
+  top: 10px; right: 14px;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: #17a2b8;
+  cursor: pointer;
+}
 @media (max-width: 575.98px) {
-  .modal-dialog {
-    max-width: 98vw;
-    width: auto !important;
-    margin: 0.5rem auto;
-  }
-  .modal-content {
-    border-radius: 10px;
+  .custom-modal {
+    width: 80vw;
     font-size: 0.93rem;
-    /* Remove padding here! */
+    padding: 1rem 0.5rem 0.7rem 0.5rem;
   }
-  .modal-header, .modal-body {
-    padding: 0.7rem 0.7rem;
-  }
-  .modal-title {
-    font-size: 1rem;
-  }
-  .btn, .btn-sm {
-    font-size: 0.93rem;
-    padding: 0.3rem 0.7rem;
-  }
-  pre {
-    font-size: 0.93rem;
-    word-break: break-all;
+  .custom-modal-close {
+    font-size: 1.2rem;
+    top: 7px; right: 10px;
   }
 }
 </style>
@@ -94,22 +110,14 @@
                     <td>{{ order.quantity }}</td>
                     <td>
                         {% if order.digital_product %}
-                            <button class="btn btn-sm btn-success" data-toggle="modal" data-target="#orderModal{{ order.id }}">View</button>
-                            <div class="modal fade" id="orderModal{{ order.id }}" tabindex="-1" role="dialog" aria-labelledby="orderModalLabel{{ order.id }}" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered" role="document">
-                                <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="orderModalLabel{{ order.id }}">Order Details</h5>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                    </button>
+                            <button class="btn btn-sm btn-success" onclick="showCustomModal('{{ order.id }}')">View</button>
+                            <div id="custom-modal-overlay-{{ order.id }}" class="custom-modal-overlay">
+                                <div class="custom-modal">
+                                <button class="custom-modal-close" onclick="closeCustomModal('{{ order.id }}')" aria-label="Close">&times;</button>
+                                <h5 style="color:#17a2b8; font-size:1.05rem; margin-bottom:0.7rem;">Order Details</h5>
+                                <strong>{{ order.product }}</strong><br>
+                                <pre style="white-space: pre-wrap;">{{ order.digital_product }}</pre>
                                 </div>
-                                <div class="modal-body">
-                                    <strong>{{ order.product }}</strong><br>
-                                    <pre style="white-space: pre-wrap;">{{ order.digital_product }}</pre>
-                                </div>
-                                </div>
-                            </div>
                             </div>
                         {% else %}
                             <span class="text-muted">Pending</span>
@@ -125,4 +133,19 @@
         </table>
     </div>
 </div>
+
+<script>
+function showCustomModal(id) {
+  document.getElementById('custom-modal-overlay-' + id).classList.add('active');
+}
+function closeCustomModal(id) {
+  document.getElementById('custom-modal-overlay-' + id).classList.remove('active');
+}
+// Optional: close modal when clicking outside the modal box
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('custom-modal-overlay')) {
+    e.target.classList.remove('active');
+  }
+});
+</script>
 {% endblock %}
