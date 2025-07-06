@@ -69,3 +69,13 @@ class Order(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.product.title} ({self.transaction_id})"
+    
+    
+class DigitalProduct(models.Model):
+    product = models.ForeignKey(Product, related_name='digital_products', on_delete=models.CASCADE)
+    code = models.TextField()  # The digital code or string
+    is_assigned = models.BooleanField(default=False)
+    assigned_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.product.title}: {self.code[:20]}{'...' if len(self.code) > 20 else ''}"

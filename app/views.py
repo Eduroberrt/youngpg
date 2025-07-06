@@ -58,6 +58,16 @@ def product_detail(request, slug):
         elif request.user.profile.balance < total_price:
             return JsonResponse({'error': "Insufficient wallet balance."})
         else:
+            # Assign digital products
+            available_codes = DigitalProduct.objects.filter(product=product, is_assigned=False)[:quantity]
+            if available_codes.count() < quantity:
+                return JsonResponse({'error': "Not enough digital products available."})
+            codes_list = []
+            for code_obj in available_codes:
+                code_obj.is_assigned = True
+                code_obj.assigned_at = timezone.now()
+                code_obj.save()
+                codes_list.append(code_obj.code)
             # Deduct from wallet
             profile = request.user.profile
             profile.balance -= total_price
@@ -66,13 +76,15 @@ def product_detail(request, slug):
             # Reduce stock
             product.stock -= quantity
             product.save()
-            # Create order
+            # Create order with digital products
             order = Order.objects.create(
                 user=request.user,
                 product=product,
                 transaction_id=str(uuid.uuid4()).replace('-', '')[:12].upper(),
                 amount=total_price,
-                quantity=quantity
+                quantity=quantity,
+                digital_product="\n".join(codes_list),
+                fulfilled=True
             )
             return JsonResponse({'success': True})
     return render(request, 'product_detail.html', {'product': product})
@@ -211,6 +223,7 @@ def register_view(request):
                 html_message=html_message,
                 fail_silently=True,
             )
+            messages.success(request, "Registration successful!")
             return redirect('product_list')
     return render(request, 'register.html', {'error': error})
 
@@ -230,6 +243,7 @@ def login_view(request):
                 user = None
         if user is not None:
             login(request, user)
+            messages.success(request, "Login successful!")
             next_url = request.POST.get('next') or request.GET.get('next')
             if next_url:
                 return redirect(next_url)
@@ -367,7 +381,7 @@ def paymentpoint_webhook(request):
             defaults={
                 'user': user,
                 'amount': amount_paid,
-                'type': "PaymentPoint",
+                'type': "Deposit",
                 'status': "Success"
             }
         )

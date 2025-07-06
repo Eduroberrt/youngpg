@@ -33,3 +33,9 @@ class OrderAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'transaction_id', 'product__title')
     readonly_fields = ('user', 'product', 'transaction_id', 'ordered_at', 'amount', 'quantity')
     fields = ('user', 'product', 'transaction_id', 'ordered_at', 'amount', 'quantity', 'fulfilled', 'digital_product')
+
+@admin.register(DigitalProduct)
+class DigitalProductAdmin(admin.ModelAdmin):
+    list_display = ('product', 'code', 'is_assigned', 'assigned_at')
+    list_filter = ('product', 'is_assigned')
+    search_fields = ('code',)

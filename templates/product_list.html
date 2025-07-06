@@ -3,7 +3,15 @@
 {% load humanize %}
 
 {% block content %}
-
+{% if messages %}
+  {% for message in messages %}
+    <div id="custom-toast" class="custom-toast show">
+      <span class="custom-toast-icon">&#10003;</span>
+      {{ message }}
+      <div class="custom-toast-progress"></div>
+    </div>
+  {% endfor %}
+{% endif %}
 <!-- Main Content -->
       <!-- Carousel -->
       <div id="mainCarousel" class="carousel slide mb-4" data-ride="carousel">

@@ -241,5 +241,15 @@
         });
       }
     </script>
+      <script>
+        window.addEventListener('DOMContentLoaded', function() {
+          var toast = document.getElementById('custom-toast');
+          if (toast) {
+            setTimeout(function() {
+              toast.classList.remove('show');
+            }, 3000); // 3.5 seconds
+          }
+        });
+      </script>
 </body>
 </html>
