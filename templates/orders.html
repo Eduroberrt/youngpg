@@ -41,19 +41,20 @@
 }
 @media (max-width: 575.98px) {
   .modal-dialog {
-    max-width: 80vw;
+    max-width: 98vw;
+    width: auto !important;
     margin: 0.5rem auto;
   }
   .modal-content {
     border-radius: 10px;
-    padding: 0.7rem 0.5rem;
-    font-size: 0.80rem;
+    font-size: 0.93rem;
+    /* Remove padding here! */
   }
   .modal-header, .modal-body {
     padding: 0.7rem 0.7rem;
   }
   .modal-title {
-    font-size: 0.9rem;
+    font-size: 1rem;
   }
   .btn, .btn-sm {
     font-size: 0.93rem;
@@ -94,22 +95,21 @@
                     <td>
                         {% if order.digital_product %}
                             <button class="btn btn-sm btn-success" data-toggle="modal" data-target="#orderModal{{ order.id }}">View</button>
-                            <!-- Modal -->
                             <div class="modal fade" id="orderModal{{ order.id }}" tabindex="-1" role="dialog" aria-labelledby="orderModalLabel{{ order.id }}" aria-hidden="true">
-                              <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-dialog modal-dialog-centered" role="document">
                                 <div class="modal-content">
-                                  <div class="modal-header">
+                                <div class="modal-header">
                                     <h5 class="modal-title" id="orderModalLabel{{ order.id }}">Order Details</h5>
                                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                      <span aria-hidden="true">&times;</span>
+                                    <span aria-hidden="true">&times;</span>
                                     </button>
-                                  </div>
-                                  <div class="modal-body">
+                                </div>
+                                <div class="modal-body">
                                     <strong>{{ order.product }}</strong><br>
                                     <pre style="white-space: pre-wrap;">{{ order.digital_product }}</pre>
-                                  </div>
                                 </div>
-                              </div>
+                                </div>
+                            </div>
                             </div>
                         {% else %}
                             <span class="text-muted">Pending</span>
