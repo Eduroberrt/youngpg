@@ -2,8 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
-import random 
-
+import random
+from decimal import Decimal
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -11,7 +11,6 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
-
 
 class Product(models.Model):
     category = models.ForeignKey(Category, related_name='products', on_delete=models.CASCADE)
@@ -25,7 +24,6 @@ class Product(models.Model):
     def __str__(self):
         return self.title
 
-
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
@@ -36,13 +34,11 @@ class Profile(models.Model):
     def __str__(self):
         return f"{self.user.username}'s Profile"
 
-
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         fake_number = f"080{random.randint(10000000, 99999999)}"
         Profile.objects.create(user=instance, phone=fake_number, balance=0)
-
 
 class PaymentHistory(models.Model):
     STATUS_CHOICES = [
@@ -61,26 +57,28 @@ class PaymentHistory(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.amount} ({self.status})"
 
-# Signal to handle newly created payments with status "Success"
+# --- SIGNALS FOR BALANCE UPDATE ---
+
 @receiver(post_save, sender=PaymentHistory)
 def update_wallet_balance_on_create(sender, instance, created, **kwargs):
     if created and instance.status == "Success":
         profile = instance.user.profile
-        profile.balance += instance.amount
-        profile.total_deposits += instance.amount
+        profile.balance = (profile.balance or Decimal('0')) + (instance.amount or Decimal('0'))
+        profile.total_deposits = (profile.total_deposits or Decimal('0')) + (instance.amount or Decimal('0'))
         profile.save()
 
-# Signal to handle when status changes to "Success" on an existing payment
 @receiver(pre_save, sender=PaymentHistory)
 def update_wallet_balance_on_status_change(sender, instance, **kwargs):
-    if instance.pk:
-        old = PaymentHistory.objects.get(pk=instance.pk)
+    if instance.pk:  # Only for updates, not creates
+        try:
+            old = PaymentHistory.objects.get(pk=instance.pk)
+        except PaymentHistory.DoesNotExist:
+            return
         if old.status != "Success" and instance.status == "Success":
             profile = instance.user.profile
-            profile.balance += instance.amount
-            profile.total_deposits += instance.amount
+            profile.balance = (profile.balance or Decimal('0')) + (instance.amount or Decimal('0'))
+            profile.total_deposits = (profile.total_deposits or Decimal('0')) + (instance.amount or Decimal('0'))
             profile.save()
-
 
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
