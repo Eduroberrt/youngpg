@@ -23,6 +23,9 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 import hmac
 import hashlib
+import logging
+
+logger = logging.getLogger(__name__)
 
 class CustomPasswordResetView(PasswordResetView):
     template_name = 'forgot_password.html'
@@ -298,7 +301,11 @@ def paymentpoint_webhook(request):
         raw_payload = request.body
         received_signature = request.headers.get('Paymentpoint-Signature')
 
+        logger.info("Received webhook call. Signature: %s", received_signature)
+        logger.info("Raw payload: %s", raw_payload.decode('utf-8'))
+
         if not received_signature:
+            logger.error("Missing signature header.")
             return JsonResponse({"error": "Missing signature header"}, status=400)
 
         # 2. Recalculate HMAC signature using PAYMENTPOINT_AUTH
@@ -310,28 +317,48 @@ def paymentpoint_webhook(request):
         ).hexdigest()
 
         if calculated_signature != received_signature:
+            logger.error("Invalid signature! Calculated: %s Received: %s", calculated_signature, received_signature)
             return JsonResponse({"error": "Invalid signature"}, status=400)
 
         # 3. Parse and validate payload
-        payload = json.loads(raw_payload)
+        try:
+            payload = json.loads(raw_payload)
+        except json.JSONDecodeError:
+            logger.error("Invalid JSON in payload.")
+            return JsonResponse({"error": "Invalid JSON format"}, status=400)
+
+        logger.info("Parsed payload: %s", payload)
 
         if payload.get("notification_status") != "payment_successful":
+            logger.info("Notification status not payment_successful: %s", payload.get("notification_status"))
             return JsonResponse({"message": "Ignored (not a successful payment)"}, status=200)
 
         transaction_status = payload.get("transaction_status")
         if transaction_status != "success":
+            logger.info("Transaction status not success: %s", transaction_status)
             return JsonResponse({"message": "Ignored (status not success)"}, status=200)
 
         customer_info = payload.get("customer", {})
         customer_email = customer_info.get("email")
-        amount_paid = Decimal(str(payload.get("amount_paid", 0)))  # use Decimal for money!
+        amount_paid = payload.get("amount_paid")
         transaction_id = payload.get("transaction_id")
 
+        logger.info("Customer email: %s, Amount: %s, Transaction ID: %s", customer_email, amount_paid, transaction_id)
+
         if not customer_email or not amount_paid or not transaction_id:
+            logger.error("Incomplete data: email: %s, amount_paid: %s, transaction_id: %s", customer_email, amount_paid, transaction_id)
             return JsonResponse({"error": "Incomplete data in payload"}, status=400)
+
+        # Use Decimal for money calculations
+        try:
+            amount_paid = Decimal(str(amount_paid))
+        except Exception as e:
+            logger.error("Invalid amount_paid: %s", amount_paid)
+            return JsonResponse({"error": "Invalid amount_paid"}, status=400)
 
         user = User.objects.filter(email=customer_email).first()
         if not user:
+            logger.error("User not found for email: %s", customer_email)
             return JsonResponse({"error": "User not found"}, status=404)
 
         # Avoid duplicate processing
@@ -344,23 +371,25 @@ def paymentpoint_webhook(request):
                 'status': "Success"
             }
         )
-        if not created and payment.status == "Success":
-            return JsonResponse({"message": "Transaction already processed"}, status=200)
-
-        # Update payment status if not already success
-        if not created and payment.status != "Success":
-            payment.status = "Success"
-            payment.save()
+        if not created:
+            if payment.status == "Success":
+                logger.info("Transaction already processed: %s", transaction_id)
+                return JsonResponse({"message": "Transaction already processed"}, status=200)
+            else:
+                payment.status = "Success"
+                payment.save()
+                logger.info("Updated existing payment record to Success: %s", transaction_id)
 
         # Update user's profile balance and total deposits
         profile = user.profile
+        logger.info("Profile before update - Balance: %s, Total Deposits: %s", profile.balance, profile.total_deposits)
         profile.balance = (profile.balance or Decimal('0')) + amount_paid
         profile.total_deposits = (profile.total_deposits or Decimal('0')) + amount_paid
         profile.save()
+        logger.info("Profile after update - Balance: %s, Total Deposits: %s", profile.balance, profile.total_deposits)
 
         return JsonResponse({"message": "Wallet credited successfully"}, status=200)
 
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid JSON format"}, status=400)
     except Exception as e:
+        logger.exception("Error processing webhook: %s", str(e))
         return JsonResponse({"error": str(e)}, status=500)

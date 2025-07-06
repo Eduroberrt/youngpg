@@ -141,6 +141,13 @@ EMAIL_HOST = 'smtp.mailgun.org'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://www.youngpgmedia.com",
+    "https://youngpgmedia.com",
+]
+
+
+
 # PAYMENTPOINT_AUTH = "Bearer 07fda3af3a007f57d8210d827c3ad9cabb9c1f255b8026f3c562314205d46b7ba52f150362e542514a0ca1fec729a22bcf086665608092fad08177b0"
 # PAYMENTPOINT_API_KEY = "bfede6d4fd5b96735f74a29dfa9c5e9bfae272f8"
 # PAYMENTPOINT_BUSINESS_ID = "3AB2B22345EF407"
