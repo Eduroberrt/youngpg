@@ -36,9 +36,8 @@
             <div class="d-flex align-items-center" style="margin-right: 18px;">
                 <a href="{% url 'fund_wallet' %}" class="text-decoration-none">
                     <div class="wallet-balance-top mr-3 text-right">
-                        <div style="font-size: 0.80rem; color: #888;">Balance</div>
-                        <div style="font-size: 0.9rem; color: #17a2b8; letter-spacing: 0.5px;">
-                            &#8358;{{ user.profile.balance|default:"0.00"|intcomma }}
+                        <div style="background:#17a2b8; color:#fff; border-radius:6px; padding:7px 10px; margin-left: 10px;">
+                            <b>&#8358;{{ user.profile.balance|default:"0.00"|intcomma }}</b>
                         </div>
                     </div>
                 </a>
