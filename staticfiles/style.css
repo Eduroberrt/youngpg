@@ -196,11 +196,9 @@ input, select, textarea {
 }
 
 .wallet-balance-top {
-    background: #e6f7fa;
     border-radius: 8px;
     padding: 6px 16px 6px 12px;
     min-width: 110px;
-    box-shadow: 0 1px 4px rgba(23,162,184,0.08);
     display: inline-block;
 }
 @media (max-width: 575.98px) {
