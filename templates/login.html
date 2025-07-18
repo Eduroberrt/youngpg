@@ -21,6 +21,12 @@
         <label>Password</label>
         <input type="password" name="password" class="form-control" required>
       </div>
+      
+      <!-- Cloudflare Turnstile Widget -->
+      <div class="form-group">
+        <div class="cf-turnstile" data-sitekey="{{ TURNSTILE_SITE_KEY }}" data-theme="light"></div>
+      </div>
+      
       <input type="hidden" name="next" value="{{ next }}">
       <button type="submit" class="btn btn-main w-100">Login</button>
     </form>
@@ -32,4 +38,7 @@
     </div>
   </div>
 </div>
+
+<!-- Cloudflare Turnstile Script -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 {% endblock %}

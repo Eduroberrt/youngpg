@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.shortcuts import render, get_object_or_404
 from .models import *
+from .utils import verify_turnstile_token, get_client_ip
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -193,6 +194,15 @@ def terms_view(request):
 def register_view(request):
     error = None
     if request.method == 'POST':
+        # Verify Turnstile token
+        turnstile_token = request.POST.get('cf-turnstile-response')
+        if not verify_turnstile_token(turnstile_token, get_client_ip(request)):
+            error = "Please complete the security verification."
+            return render(request, 'register.html', {
+                'error': error,
+                'TURNSTILE_SITE_KEY': settings.TURNSTILE_SITE_KEY
+            })
+        
         username = request.POST.get('username')
         email = request.POST.get('email')
         password = request.POST.get('password')
@@ -225,12 +235,25 @@ def register_view(request):
             )
             messages.success(request, "Registration successful!")
             return redirect('product_list')
-    return render(request, 'register.html', {'error': error})
+    return render(request, 'register.html', {
+        'error': error,
+        'TURNSTILE_SITE_KEY': settings.TURNSTILE_SITE_KEY
+    })
 
 def login_view(request):
     error = None
     next_url = request.GET.get('next', request.POST.get('next', ''))
     if request.method == 'POST':
+        # Verify Turnstile token
+        turnstile_token = request.POST.get('cf-turnstile-response')
+        if not verify_turnstile_token(turnstile_token, get_client_ip(request)):
+            error = "Please complete the security verification."
+            return render(request, 'login.html', {
+                'error': error, 
+                'next': next_url,
+                'TURNSTILE_SITE_KEY': settings.TURNSTILE_SITE_KEY
+            })
+        
         username_or_email = request.POST.get('username')
         password = request.POST.get('password')
         user = authenticate(request, username=username_or_email, password=password)
@@ -250,7 +273,11 @@ def login_view(request):
             return redirect('product_list')
         else:
             error = "Invalid username/email or password."
-    return render(request, 'login.html', {'error': error, 'next': next_url})
+    return render(request, 'login.html', {
+        'error': error, 
+        'next': next_url,
+        'TURNSTILE_SITE_KEY': settings.TURNSTILE_SITE_KEY
+    })
 
 def logout_view(request):
     logout(request)
