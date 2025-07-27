@@ -12,16 +12,16 @@
     {% if products %}
         <div class="row">
             {% for product in products %}
-                <div class="col-12 mb-3">
+              <div class="col-12 mb-3">
                 <div class="card h-100 px-3 py-4 d-flex flex-row align-items-center" style="border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
                   <img src="{{ product.image.url }}" alt="img" class="rounded-circle mr-3" style="width: 28px; height: 28px; object-fit:cover;">
-                  <div class="flex-grow-1 ml-3">
+                  <div style="margin-left: 0.5rem; flex: 1; max-width: calc(100% - 120px);">
                     <p class="mb-3" style="font-size: 12px;">
                       <a href="{% url 'product_detail' product.slug %}" class="text-dark">{{ product.title }}</a>
                     </p>
                     <p class="mb-0 text-muted" style="font-size: 13px;">
                         <span class="font-weight-bold" style="background:#17a2b8; color:#fff; border-radius:6px; padding:7px 10px; margin-right: 10px;">
-                            &#8358;{{ product.price|floatformat:2|intcomma }}
+                            &#8358;{{ product.price|floatformat:2|intcomma}}
                         </span>
                         &nbsp;|&nbsp;
                         <span class="font-weight-bold" style="background:#17a2b8; color:#fff; border-radius:6px; padding:7px 10px; margin-left: 10px;">
@@ -29,16 +29,18 @@
                         </span>
                     </p>
                   </div>
+                  <div style="margin-left: auto; flex-shrink: 0;">
                     {% if product.stock > 0 %}
-                        <a href="{% url 'product_detail' product.slug %}" class="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
+                      <a href="{% url 'product_detail' product.slug %}" class="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
                         style="min-width: 48px; padding: 0.5rem 1rem;">
                         <i class="fa fa-shopping-basket"></i>
-                        </a>
+                      </a>
                     {% else %}
-                      <button class="btn btn-secondary btn-sm btn-not-in-stock not-in-stock-mobile" style="min-width: 110px;" disabled>
-                      Out of<span class="d-none d-sm-inline"> stock</span><span class="d-sm-none"><br>stock</span>
+                     <button class="btn btn-secondary btn-sm btn-not-in-stock not-in-stock-mobile d-flex align-items-center justify-content-center" style="min-width: 48px;" disabled>
+                      <span class="d-none d-sm-inline">Out of stock</span><span class="d-sm-none">Out of<br>stock</span>
                     </button>
                     {% endif %}
+                  </div>
                 </div>
               </div>
             {% endfor %}

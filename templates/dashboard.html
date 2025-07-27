@@ -161,7 +161,6 @@
                 <tr>
                     <th>Date</th>
                     <th>Amount (₦)</th>
-                    <th>Type</th>
                     <th>Status</th>
                 </tr>
             </thead>
@@ -170,10 +169,9 @@
                 <tr>
                     <td>{{ payment.date|date:"Y-m-d H:i" }}</td>
                     <td>{{ payment.amount|floatformat:2|intcomma }}</td>
-                    <td>{{ payment.type }}</td>
                     <td>
-                        {% if payment.status == "Success" %}
-                            <span class="badge badge-success">Success</span>
+                        {% if payment.status == "Success" or payment.status == "completed" %}
+                            <span class="badge badge-success">{{ payment.status|title }}</span>
                         {% elif payment.status == "Pending" %}
                             <span class="badge badge-warning">Pending</span>
                         {% else %}

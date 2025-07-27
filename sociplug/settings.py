@@ -152,3 +152,9 @@ CSRF_TRUSTED_ORIGINS = [
 
 LOGIN_URL = '/login/'
 LOGOUT_URL = '/logout/'
+
+# Custom authentication backends
+AUTHENTICATION_BACKENDS = [
+    'app.backends.CaseInsensitiveEmailBackend',
+    'django.contrib.auth.backends.ModelBackend', 
+]

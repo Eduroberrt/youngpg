@@ -29,6 +29,54 @@
 .table td, .table th {
     vertical-align: middle;
 }
+
+/* Pagination Styles */
+.pagination-container {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e6f7fa;
+}
+.pagination-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.pagination-info {
+    color: #138496;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+.pagination {
+    margin: 0;
+}
+.pagination .page-link {
+    color: #138496;
+    border: 1px solid #e6f7fa;
+    border-radius: 8px;
+    margin: 0 2px;
+    padding: 8px 12px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+.pagination .page-link:hover {
+    background-color: #e6f7fa;
+    color: #0c5460;
+    border-color: #b8e6ea;
+}
+.pagination .page-item.active .page-link {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+    color: white;
+}
+.pagination .page-item.disabled .page-link {
+    color: #adb5bd;
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+}
+
 @media (max-width: 767.98px) {
     .orders-card {
         padding: 1.2rem 0.5rem;
@@ -39,7 +87,32 @@
         align-items: flex-start;
         gap: 10px;
     }
+    .pagination-wrapper {
+        flex-direction: column;
+        text-align: center;
+    }
+    .pagination-info {
+        order: 2;
+        font-size: 0.85rem;
+    }
+    .pagination {
+        order: 1;
+        justify-content: center;
+    }
+    .pagination .page-link {
+        padding: 6px 10px;
+        font-size: 0.85rem;
+        margin: 0 1px;
+    }
 }
+
+@media (max-width: 575.98px) {
+    .pagination .page-link {
+        padding: 5px 8px;
+        font-size: 0.8rem;
+    }
+}
+
 .custom-modal-overlay {
   position: fixed;
   z-index: 2000;
@@ -70,6 +143,19 @@
   font-size: 1.4rem;
   color: #17a2b8;
   cursor: pointer;
+}
+#copy-success-message {
+  display: none;
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 3000;
+  background: #17a2b8;
+  color: #fff;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 @media (max-width: 575.98px) {
   .custom-modal {
@@ -117,7 +203,8 @@
                                 <button class="custom-modal-close" onclick="closeCustomModal('{{ order.id }}')" aria-label="Close">&times;</button>
                                 <h5 style="color:#17a2b8; font-size:1.05rem; margin-bottom:0.7rem;">Order Details</h5>
                                 <strong>{{ order.product }}</strong><br>
-                                <pre style="white-space: pre-wrap;">{{ order.digital_product }}</pre>
+                                <pre style="white-space: pre-wrap;" id="digital-product-{{ order.id }}">{{ order.digital_product }}</pre>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="copyDigitalProduct('{{ order.id }}')" title="Copy"><i class="fa fa-copy"></i> Copy</button>
                                 </div>
                             </div>
                         {% else %}
@@ -133,7 +220,82 @@
             </tbody>
         </table>
     </div>
+    
+    <!-- Pagination -->
+    {% if orders.has_other_pages %}
+    <div class="pagination-container">
+        <div class="pagination-wrapper">
+            <div class="pagination-info">
+                Showing {{ orders.start_index }}–{{ orders.end_index }} of {{ orders.paginator.count }} order{{ orders.paginator.count|pluralize }}
+            </div>
+            <nav aria-label="Orders pagination">
+                <ul class="pagination">
+                    {% if orders.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1" aria-label="First">
+                                <i class="fa fa-angle-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ orders.previous_page_number }}" aria-label="Previous">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">
+                                <i class="fa fa-angle-double-left"></i>
+                            </span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link">
+                                <i class="fa fa-angle-left"></i>
+                            </span>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in orders.paginator.page_range %}
+                        {% if orders.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > orders.number|add:'-3' and num < orders.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if orders.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ orders.next_page_number }}" aria-label="Next">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ orders.paginator.num_pages }}" aria-label="Last">
+                                <i class="fa fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">
+                                <i class="fa fa-angle-right"></i>
+                            </span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link">
+                                <i class="fa fa-angle-double-right"></i>
+                            </span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+    {% endif %}
 </div>
+<div id="copy-success-message">Copied</div>
 
 <script>
 function showCustomModal(id) {
@@ -141,6 +303,15 @@ function showCustomModal(id) {
 }
 function closeCustomModal(id) {
   document.getElementById('custom-modal-overlay-' + id).classList.remove('active');
+}
+function copyDigitalProduct(id) {
+  var el = document.getElementById('digital-product-' + id);
+  var text = el.innerText || el.textContent;
+  navigator.clipboard.writeText(text).then(function() {
+    var msg = document.getElementById('copy-success-message');
+    msg.style.display = 'block';
+    setTimeout(function() { msg.style.display = 'none'; }, 1200);
+  });
 }
 // Optional: close modal when clicking outside the modal box
 document.addEventListener('click', function(e) {

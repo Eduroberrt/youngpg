@@ -20,6 +20,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.views import PasswordResetView
+from .forms import CaseInsensitivePasswordResetForm
 from django.template.loader import render_to_string
 from django.utils import timezone
 import hmac
@@ -33,20 +34,7 @@ class CustomPasswordResetView(PasswordResetView):
     html_email_template_name = 'reset_email.html'
     subject_template_name = 'reset_subject.txt'
     success_url = '/forgot-password/done/'
-
-    def form_valid(self, form):
-        email = form.cleaned_data["email"].strip().lower()  # <-- Lowercase and strip spaces
-        if not User.objects.filter(email__iexact=email).exists():
-            return self.form_invalid(form)
-        
-        form.cleaned_data["email"] = email
-        return super().form_valid(form)
-
-    def form_invalid(self, form):
-        return self.render_to_response(self.get_context_data(
-            form=form,
-            error="No user with that email address exists."
-        ))
+    form_class = CaseInsensitivePasswordResetForm
 
 @login_required
 def product_detail(request, slug):
@@ -181,7 +169,13 @@ def dashboard_view(request):
 
 @login_required
 def orders_view(request):
-    orders = Order.objects.filter(user=request.user).order_by('-ordered_at')
+    orders_list = Order.objects.filter(user=request.user).order_by('-ordered_at')
+    
+    # Pagination - 5 orders per page
+    paginator = Paginator(orders_list, 5)
+    page_number = request.GET.get('page')
+    orders = paginator.get_page(page_number)
+    
     return render(request, 'orders.html', {'orders': orders})
 
 @login_required
@@ -204,14 +198,14 @@ def register_view(request):
             })
         
         username = request.POST.get('username')
-        email = request.POST.get('email')
+        email = request.POST.get('email').lower()  # Convert to lowercase
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
         if password != confirm_password:
             error = "Passwords do not match."
         elif User.objects.filter(username=username).exists():
             error = "Username already exists."
-        elif User.objects.filter(email=email).exists():
+        elif User.objects.filter(email__iexact=email).exists():  # Case-insensitive check
             error = "Email already exists."
         else:
             user = User.objects.create_user(username=username, email=email, password=password)
@@ -256,14 +250,10 @@ def login_view(request):
         
         username_or_email = request.POST.get('username')
         password = request.POST.get('password')
+        
+        # The custom backend will handle both username and case-insensitive email authentication
         user = authenticate(request, username=username_or_email, password=password)
-        if user is None:
-            # Try email
-            try:
-                user_obj = User.objects.get(email=username_or_email)
-                user = authenticate(request, username=user_obj.username, password=password)
-            except User.DoesNotExist:
-                user = None
+        
         if user is not None:
             login(request, user)
             messages.success(request, "Login successful!")
