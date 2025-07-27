@@ -2,7 +2,70 @@
 {% load static %}
 {% load humanize %}
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}User Dashboard - Account Overview | Young PG Media{% endblock %}
+
+{% block extra_head %}
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="User Dashboard - Account Overview | Young PG Media">
+    <meta name="description" content="Secure user dashboard for managing your digital products, wallet balance, orders, and account settings at Young PG Media. Access your personal account information safely.">
+    <meta name="keywords" content="user dashboard, account management, digital products, wallet, orders, Young PG Media, user panel">
+    <meta name="author" content="Young PG Media">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="googlebot" content="noindex, nofollow">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://www.youngpgmedia.com/dashboard/">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.youngpgmedia.com/dashboard/">
+    <meta property="og:title" content="User Dashboard - Young PG Media">
+    <meta property="og:description" content="Secure user dashboard for managing your digital products and account at Young PG Media.">
+    <meta property="og:image" content="{% static 'images/logo.png' %}">
+    <meta property="og:site_name" content="Young PG Media">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://www.youngpgmedia.com/dashboard/">
+    <meta property="twitter:title" content="User Dashboard - Young PG Media">
+    <meta property="twitter:description" content="Secure user dashboard for managing your digital products and account at Young PG Media.">
+    <meta property="twitter:image" content="{% static 'images/logo.png' %}">
+    
+    <!-- Additional Meta Tags -->
+    <meta name="theme-color" content="#17a2b8">
+    <meta name="msapplication-TileColor" content="#17a2b8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Young PG Dashboard">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data:">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Young PG Media Dashboard",
+        "description": "User dashboard for managing digital products and account settings",
+        "url": "https://www.youngpgmedia.com/dashboard/",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Any",
+        "offers": {
+            "@type": "Offer",
+            "category": "Digital Products"
+        },
+        "provider": {
+            "@type": "Organization",
+            "name": "Young PG Media",
+            "url": "https://www.youngpgmedia.com"
+        }
+    }
+    </script>
+{% endblock %}
 
 {% block content %}
 <style>

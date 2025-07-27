@@ -2,6 +2,104 @@
 {% load static %}
 {% load humanize %}
 
+{% block title %}Young PG Media - Digital Products & Social Media Services | Buy Instagram, Facebook, TikTok Accounts{% endblock %}
+
+{% block extra_head %}
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="Young PG Media - Digital Products & Social Media Services | Buy Instagram, Facebook, TikTok Accounts">
+    <meta name="description" content="Young PG Media - Your trusted source for premium digital products, social media accounts, and digital marketing services. Buy verified Instagram, Facebook, TikTok accounts and boost your online presence.">
+    <meta name="keywords" content="social media accounts, buy instagram accounts, facebook accounts, tiktok accounts, digital products, social media marketing, verified accounts, digital services, online marketing, social media growth, Young PG Media">
+    <meta name="author" content="Young PG Media">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://www.youngpgmedia.com/">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.youngpgmedia.com/">
+    <meta property="og:title" content="Young PG Media - Premium Digital Products & Social Media Services">
+    <meta property="og:description" content="Transform your digital presence with Young PG Media. We provide premium social media accounts, digital products, and marketing services to grow your online business.">
+    <meta property="og:image" content="{% static 'images/logo.png' %}">
+    <meta property="og:site_name" content="Young PG Media">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://www.youngpgmedia.com/">
+    <meta property="twitter:title" content="Young PG Media - Digital Products & Social Media Services">
+    <meta property="twitter:description" content="Premium social media accounts and digital marketing services. Grow your online presence with verified Instagram, Facebook, and TikTok accounts.">
+    <meta property="twitter:image" content="{% static 'images/logo.png' %}">
+    
+    <!-- Additional Meta Tags -->
+    <meta name="theme-color" content="#17a2b8">
+    <meta name="msapplication-TileColor" content="#17a2b8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Young PG Media">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    
+    <!-- Business & Local SEO -->
+    <meta name="geo.region" content="NG">
+    <meta name="geo.placename" content="Nigeria">
+    <meta name="language" content="English">
+    <meta name="distribution" content="global">
+    <meta name="rating" content="general">
+    
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Young PG Media",
+        "description": "Premier provider of digital products and social media services",
+        "url": "https://www.youngpgmedia.com",
+        "logo": "{% static 'images/logo.png' %}",
+        "foundingDate": "2020",
+        "sameAs": [
+            "https://www.facebook.com/youngpgmedia",
+            "https://www.instagram.com/youngpgmedia",
+            "https://www.twitter.com/youngpgmedia"
+        ],
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer service",
+            "availableLanguage": "English"
+        },
+        "areaServed": {
+            "@type": "Country",
+            "name": "Nigeria"
+        },
+        "hasOfferCatalog": {
+            "@type": "OfferCatalog",
+            "name": "Digital Products & Services",
+            "itemListElement": [
+                {
+                    "@type": "Offer",
+                    "itemOffered": {
+                        "@type": "Service",
+                        "name": "Social Media Accounts",
+                        "description": "Verified Instagram, Facebook, and TikTok accounts"
+                    }
+                },
+                {
+                    "@type": "Offer",
+                    "itemOffered": {
+                        "@type": "Service",
+                        "name": "Digital Marketing Services",
+                        "description": "Social media growth and marketing solutions"
+                    }
+                }
+            ]
+        }
+    }
+    </script>
+{% endblock %}
+
 {% block content %}
 {% if messages %}
   {% for message in messages %}
