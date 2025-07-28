@@ -213,7 +213,7 @@ input, select, textarea {
   .btn-not-in-stock {
     min-width: 48px !important;
     font-size: 0.65rem !important;
-    padding: 0.45rem 0.65rem !important;
+    padding: 0.3rem 0.5rem !important;
     white-space: normal !important;
     line-height: 1.2 !important;
   }
