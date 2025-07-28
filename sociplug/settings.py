@@ -156,5 +156,5 @@ LOGOUT_URL = '/logout/'
 # Custom authentication backends
 AUTHENTICATION_BACKENDS = [
     'app.backends.CaseInsensitiveEmailBackend',
-    'django.contrib.auth.backends.ModelBackend', 
+    'django.contrib.auth.backends.ModelBackend',  # Keep as fallback
 ]

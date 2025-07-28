@@ -203,8 +203,26 @@
                                 <button class="custom-modal-close" onclick="closeCustomModal('{{ order.id }}')" aria-label="Close">&times;</button>
                                 <h5 style="color:#17a2b8; font-size:1.05rem; margin-bottom:0.7rem;">Order Details</h5>
                                 <strong>{{ order.product }}</strong><br>
-                                <pre style="white-space: pre-wrap;" id="digital-product-{{ order.id }}">{{ order.digital_product }}</pre>
-                                <button class="btn btn-outline-secondary btn-sm" onclick="copyDigitalProduct('{{ order.id }}')" title="Copy"><i class="fa fa-copy"></i> Copy</button>
+                                <div class="digital-products-container" style="margin-top: 1rem;">
+                                    <div id="digital-products-list-{{ order.id }}">
+                                        <!-- This will be populated by JavaScript -->
+                                    </div>
+                                    <script type="text/javascript">
+                                        // Store product data for this order
+                                        (function() {
+                                            window.orderProducts = window.orderProducts || {};
+                                            var orderId = '{{ order.id }}';
+                                            var quantity = parseInt('{{ order.quantity }}');
+                                            var productText = `{{ order.digital_product|escapejs }}`;
+                                            
+                                            window.orderProducts[orderId] = {
+                                                text: productText,
+                                                quantity: quantity,
+                                                orderId: orderId
+                                            };
+                                        })();
+                                    </script>
+                                </div>
                                 </div>
                             </div>
                         {% else %}
@@ -300,19 +318,112 @@
 <script>
 function showCustomModal(id) {
   document.getElementById('custom-modal-overlay-' + id).classList.add('active');
+  
+  // Initialize the digital products display
+  displayDigitalProducts(id);
 }
+
 function closeCustomModal(id) {
   document.getElementById('custom-modal-overlay-' + id).classList.remove('active');
 }
-function copyDigitalProduct(id) {
-  var el = document.getElementById('digital-product-' + id);
-  var text = el.innerText || el.textContent;
-  navigator.clipboard.writeText(text).then(function() {
-    var msg = document.getElementById('copy-success-message');
-    msg.style.display = 'block';
-    setTimeout(function() { msg.style.display = 'none'; }, 1200);
+
+function displayDigitalProducts(orderId) {
+  var orderData = window.orderProducts[orderId];
+  if (!orderData) return;
+  
+  var container = document.getElementById('digital-products-list-' + orderId);
+  if (!container) return;
+  
+  var productsText = orderData.text;
+  var quantity = orderData.quantity;
+  
+  // Split by newlines since that's how products are stored in the database ("\n".join(codes_list))
+  var products = productsText.split('\n').filter(function(p) {
+    return p.trim().length > 0;
   });
+  
+  var html = '';
+  
+  if (quantity > 1 && products.length > 1) {
+    // Multiple products - show numbered list with minimal styling
+    for (var i = 0; i < products.length; i++) {
+      var productNum = i + 1;
+      var product = products[i].trim();
+      if (product) {
+        html += '<div class="digital-product-item" style="margin-bottom: 0.6rem; padding: 0.5rem; background: #fff; border: 1px solid #17a2b8; border-radius: 6px;">';
+        html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">';
+        html += '<span style="color: #17a2b8; font-size: 0.9rem; font-weight: 600;">' + productNum + '</span>';
+        html += '<button class="btn btn-sm" onclick="copyIndividualProduct(\'' + orderId + '\', ' + i + ')" title="Copy Product #' + productNum + '" style="font-size: 0.8rem; padding: 0.2rem 0.4rem; background: #17a2b8; border: none; border-radius: 4px; color: white; min-width: 24px;"><i class="fa fa-copy"></i></button>';
+        html += '</div>';
+        html += '<pre style="white-space: pre-wrap; font-size: 0.8rem; margin: 0; background: #f8f9fa; padding: 0.4rem; border-radius: 4px; font-family: inherit; color: #495057; line-height: 1.2;" id="individual-product-' + orderId + '-' + i + '">' + product + '</pre>';
+        html += '</div>';
+      }
+    }
+  } else {
+    // Single product - no numbering needed
+    html += '<div style="margin-bottom: 0.6rem; padding: 0.5rem; background: #fff; border: 1px solid #17a2b8; border-radius: 6px;">';
+    html += '<div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 0.3rem;">';
+    html += '<button class="btn btn-sm" onclick="copyIndividualProduct(\'' + orderId + '\', 0)" title="Copy" style="font-size: 0.8rem; padding: 0.2rem 0.4rem; background: #17a2b8; border: none; border-radius: 4px; color: white; min-width: 24px;"><i class="fa fa-copy"></i></button>';
+    html += '</div>';
+    html += '<pre style="white-space: pre-wrap; font-size: 0.8rem; margin: 0; background: #f8f9fa; padding: 0.4rem; border-radius: 4px; font-family: inherit; color: #495057; line-height: 1.2;" id="individual-product-' + orderId + '-0">' + productsText + '</pre>';
+    html += '</div>';
+  }
+  
+  container.innerHTML = html;
 }
+
+function copyAllDigitalProducts(id) {
+  var orderData = window.orderProducts[id];
+  var text = orderData ? orderData.text : '';
+  
+  if (text) {
+    navigator.clipboard.writeText(text).then(function() {
+      showCopyMessage();
+    }).catch(function() {
+      // Fallback for older browsers
+      var textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      showCopyMessage();
+    });
+  }
+}
+
+function copyIndividualProduct(orderId, productIndex) {
+  var el = document.getElementById('individual-product-' + orderId + '-' + productIndex);
+  if (el) {
+    var text = el.innerText || el.textContent;
+    navigator.clipboard.writeText(text).then(function() {
+      showCopyMessage();
+    }).catch(function() {
+      // Fallback for older browsers
+      var textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      showCopyMessage();
+    });
+  }
+}
+
+// Legacy function for backward compatibility
+function copyDigitalProduct(id) {
+  copyAllDigitalProducts(id);
+}
+
+function showCopyMessage() {
+  var msg = document.getElementById('copy-success-message');
+  msg.style.display = 'block';
+  setTimeout(function() { 
+    msg.style.display = 'none'; 
+  }, 1200);
+}
+
 // Optional: close modal when clicking outside the modal box
 document.addEventListener('click', function(e) {
   if (e.target.classList.contains('custom-modal-overlay')) {
