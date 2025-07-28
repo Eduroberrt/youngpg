@@ -219,6 +219,21 @@ input, select, textarea {
   }
 }
 
+/* Override disabled button styling for out of stock buttons */
+.btn-not-in-stock:disabled {
+  opacity: 1 !important;
+  background-color: #007bff !important;
+  border-color: #007bff !important;
+  color: #fff !important;
+  cursor: not-allowed;
+}
+
+.btn-not-in-stock:disabled:hover {
+  background-color: #007bff !important;
+  border-color: #007bff !important;
+  color: #fff !important;
+}
+
 .custom-toast {
   position: fixed;
   top: 32px;
