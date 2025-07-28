@@ -209,7 +209,7 @@ def register_view(request):
             error = "Email already exists."
         else:
             user = User.objects.create_user(username=username, email=email, password=password)
-            login(request, user)
+            login(request, user, backend='app.backends.CaseInsensitiveEmailBackend')
             # Send welcome email (HTML)
             subject = 'Welcome to YoungPG Media'
             plain_message = 'Thank you for registering at YoungPG Media!'
@@ -255,7 +255,7 @@ def login_view(request):
         user = authenticate(request, username=username_or_email, password=password)
         
         if user is not None:
-            login(request, user)
+            login(request, user, backend='app.backends.CaseInsensitiveEmailBackend')
             messages.success(request, "Login successful!")
             next_url = request.POST.get('next') or request.GET.get('next')
             if next_url:
