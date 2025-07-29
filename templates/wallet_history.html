@@ -42,6 +42,51 @@
     .wallet-filter-form button {
         margin-bottom: 0;
     }
+    
+    /* Mobile table optimizations */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -0.5rem; /* Extend to full width */
+        padding: 0 0.5rem;
+        position: relative;
+    }
+    
+    .table {
+        min-width: 500px; /* Ensure table maintains proper width for horizontal scroll */
+        border: none; /* Remove any table borders */
+    }
+    
+    .table td, .table th {
+        font-size: 0.85rem; /* Reduced font size for mobile */
+        padding: 0.5rem 0.3rem; /* Reduce padding */
+        white-space: nowrap; /* Prevent text wrapping */
+        border-right: none; /* Remove right borders that could create lines */
+        border-left: none; /* Remove left borders */
+    }
+    
+    .table thead th {
+        font-size: 0.8rem; /* Reduced font size for headers */
+        font-weight: 600;
+    }
+    
+    /* Specifically target the "Date" column to prevent wrapping */
+    .table td:nth-child(1), .table th:nth-child(1) {
+        white-space: nowrap;
+        min-width: 120px; /* Ensure enough space for date/time */
+    }
+    
+    /* Amount column styling */
+    .table td:nth-child(2), .table th:nth-child(2) {
+        white-space: nowrap;
+        min-width: 100px; /* Ensure enough space for amount */
+    }
+    
+    /* Status column styling */
+    .table td:nth-child(3), .table th:nth-child(3) {
+        white-space: nowrap;
+        min-width: 80px; /* Ensure enough space for status badge */
+    }
 }
 </style>
 

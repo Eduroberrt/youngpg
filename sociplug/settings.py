@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-r5^p5rdwm^@%njd!4al*kds6e87%sy=36st#&*p8g9^y%z0o_j
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["127.0.0.1","304515d5d0b7.ngrok-free.app"]
 
 
 # Application definition
@@ -144,6 +144,7 @@ EMAIL_USE_TLS = True
 CSRF_TRUSTED_ORIGINS = [
     "https://www.youngpgmedia.com",
     "https://youngpgmedia.com",
+    "https://304515d5d0b7.ngrok-free.app"
 ]
 
 # PAYMENTPOINT_AUTH = "Bearer 07fda3af3a007f57d8210d827c3ad9cabb9c1f255b8026f3c562314205d46b7ba52f150362e542514a0ca1fec729a22bcf086665608092fad08177b0"

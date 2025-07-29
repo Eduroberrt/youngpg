@@ -1,6 +1,7 @@
 html, body {
     height: 100%;
     min-height: 100%;
+    overflow-x: hidden; /* Prevent horizontal scrolling issues */
 }
 
 body {
@@ -8,6 +9,62 @@ body {
     flex-direction: column;
     min-height: 100vh;
     font-family: 'Inter', Arial, Helvetica, sans-serif;
+    /* Force scrollbar to always be visible to prevent layout shift */
+    overflow-y: scroll;
+    /* Ensure smooth scrolling on mobile */
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent layout shift from images and dynamic content */
+img {
+    max-width: 100%;
+    height: auto;
+    /* Prevent image layout shift while loading */
+    background-color: #f0f0f0;
+}
+
+/* Navbar optimizations */
+.navbar {
+    /* Ensure navbar doesn't cause layout shifts */
+    min-height: 60px;
+    flex-wrap: nowrap !important; /* Prevent navbar from wrapping */
+}
+
+.navbar img {
+    /* Prevent logo loading shifts */
+    display: block;
+}
+
+/* Navbar right section - prevent wrapping */
+.navbar .d-flex.align-items-center.flex-nowrap {
+    flex-shrink: 0; /* Prevent shrinking that could cause wrapping */
+}
+
+/* Optimize transitions for smoother animations */
+* {
+    box-sizing: border-box;
+}
+
+/* Mobile scrolling optimizations */
+@media (max-width: 767.98px) {
+    body {
+        -webkit-overflow-scrolling: touch;
+        overflow-y: auto;
+    }
+    
+    .container-fluid {
+        overflow-x: hidden;
+    }
+    
+    .col-lg-9.py-4.offset-lg-3 {
+        padding-bottom: 3rem; /* Ensure footer is accessible */
+    }
+}
+
+/* Prevent text size adjustment on orientation change */
+html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
 }
 body:not(.auth-bg) {
     background: #f4f4f4;
@@ -60,7 +117,7 @@ input, select, textarea {
     border-radius:6px;
 }
 
- /* Sidebar overlay for mobile */
+/* Sidebar overlay for mobile */
   #sidebarOverlay {
     display: none;
     position: fixed;
@@ -77,10 +134,11 @@ input, select, textarea {
     background: #f8f9fa;
     z-index: 1050;
     transform: translateX(-100%);
-    transition: transform 0.3s;
+    transition: transform 0.3s ease;
     box-shadow: 2px 0 8px rgba(0,0,0,0.08);
     padding-left: 24px;
     padding-right: 24px;
+    will-change: transform;
   }
   #mobileSidebar.active {
     transform: translateX(0);
@@ -98,6 +156,7 @@ input, select, textarea {
     height: 100vh;
     z-index: 1030;
     width: 22%; /* or 300px for fixed width */
+    will-change: auto; /* Optimize for static sidebar */
   }
   .offset-lg-3 {
     margin-left: 22%;
@@ -200,12 +259,39 @@ input, select, textarea {
     padding: 6px 16px 6px 12px;
     min-width: 110px;
     display: inline-block;
+    white-space: nowrap; /* Prevent text wrapping */
 }
 @media (max-width: 575.98px) {
     .wallet-balance-top {
         padding: 5px 8px 5px 8px;
         min-width: 80px;
         font-size: 0.6rem;
+        white-space: nowrap; /* Ensure no wrapping on mobile */
+    }
+    
+    .wallet-balance-top div {
+        font-size: 0.7rem; /* Even smaller on very small screens */
+        max-width: 90px;
+    }
+    
+    /* Additional navbar fixes for mobile */
+    .navbar {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+    
+    .navbar .d-flex.align-items-center.flex-nowrap {
+        margin-right: 8px !important;
+    }
+}
+
+/* Handle extra large balances on medium screens */
+@media (max-width: 767.98px) and (min-width: 576px) {
+    .wallet-balance-top div {
+        font-size: 0.8rem; /* Slightly smaller font for large balances */
+        max-width: 120px; /* Limit width to prevent navbar overflow */
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 }
 

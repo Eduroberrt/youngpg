@@ -156,6 +156,7 @@
 }
 
 @media (max-width: 575.98px) {
+  /* Dashboard content styles - exclude navbar elements */
   .dashboard-card,
   .dashboard-label,
   .dashboard-balance,
@@ -172,8 +173,8 @@
     font-size: 0.80rem !important;
   }
   .dashboard-btn,
-  .btn,
-  button {
+  .btn:not(.navbar .btn):not(.wallet-balance-top .btn), /* Exclude navbar buttons */
+  button:not(.navbar button) { /* Exclude navbar buttons */
     font-size: 0.93rem !important;
     padding: 0.3rem 0.7rem !important;
   }
@@ -184,6 +185,61 @@
   .fa-history,
   .fa-shopping-basket {
     font-size: 1rem !important;
+  }
+  
+  /* Completely override navbar styles to fix positioning */
+  .navbar {
+    flex-wrap: nowrap !important;
+    min-height: 60px !important;
+  }
+  
+  .navbar .d-flex.align-items-center.flex-nowrap {
+    flex-shrink: 0 !important;
+    flex-wrap: nowrap !important;
+  }
+  
+  .navbar .wallet-balance-top {
+    font-size: inherit !important;
+    white-space: nowrap !important;
+    min-width: 80px !important;
+  }
+  
+  .navbar .wallet-balance-top div {
+    font-size: 0.75rem !important;
+    white-space: nowrap !important;
+    padding: 5px 8px !important;
+    max-width: 100px !important;
+  }
+  
+  .navbar img[alt="profile"] {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  
+  /* Ensure main content area has proper padding for scrolling */
+  .col-lg-9.py-4.offset-lg-3 {
+    padding-bottom: 4rem !important; /* Ensure space for footer */
+    min-height: calc(100vh - 60px) !important; /* Account for navbar height */
+  }
+  
+  /* Fix footer positioning on mobile */
+  footer {
+    position: relative !important;
+    margin-top: 2rem !important;
+  }
+}
+
+/* Additional small screen optimizations */
+@media (max-width: 400px) {
+  .navbar .wallet-balance-top div {
+    font-size: 0.7rem !important;
+    max-width: 100px !important;
+    padding: 5px 8px !important;
+  }
+  
+  .navbar img[alt="profile"] {
+    width: 32px !important;
+    height: 32px !important;
   }
 }
 </style>
